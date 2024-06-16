@@ -4,34 +4,26 @@ import java.util.*;
 
 public class TabuSearchUFLP {
 
-    // Variáveis do problema UFLP
-    private int numFacilities;  // número de instalações
-    private int numCustomers;   // número de clientes
-    private double[][] cost;    // matriz de custos
+    private WarehouseLocationProblem problem;
 
-    // Solução do Tabu Search
-    private boolean[] isOpen;   // vetor indicando se a instalação está aberta
-    private int[] assignment;   // vetor de atribuição de clientes a instalações
-    private double bestCost;    // melhor custo encontrado
+    private int[] assignment;
+    private double bestCost;
 
-    // Parâmetros do Tabu Search
-    private int tenure = 10;    // tamanho da lista Tabu
-    private int maxIterations = 100;  // Número máximo de iterações
-    private int stagnationLimit = 10; // Limite de iterações sem melhoria para considerar estagnação
+    private int tenure = 10;
+    private int maxIterations = 100;
+    private int stagnationLimit = 10;
 
-    // Lista Tabu para guardar movimentos recentes
     private Queue<Move> tabuList;
 
-    // Estrutura para representar um movimento (troca de cliente)
     private class Move {
         int customer;
-        int fromFacility;
-        int toFacility;
+        int fromWarehouse;
+        int toWarehouse;
 
-        Move(int customer, int fromFacility, int toFacility) {
+        Move(int customer, int fromWarehouse, int toWarehouse) {
             this.customer = customer;
-            this.fromFacility = fromFacility;
-            this.toFacility = toFacility;
+            this.fromWarehouse = fromWarehouse;
+            this.toWarehouse = toWarehouse;
         }
 
         @Override
@@ -39,62 +31,49 @@ public class TabuSearchUFLP {
             if (this == obj) return true;
             if (obj == null || getClass() != obj.getClass()) return false;
             Move move = (Move) obj;
-            return customer == move.customer && fromFacility == move.fromFacility && toFacility == move.toFacility;
+            return customer == move.customer && fromWarehouse == move.fromWarehouse && toWarehouse == move.toWarehouse;
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(customer, fromFacility, toFacility);
+            return Objects.hash(customer, fromWarehouse, toWarehouse);
         }
     }
 
-    // Construtor
-    public TabuSearchUFLP(int numFacilities, int numCustomers, double[][] cost) {
-        this.numFacilities = numFacilities;
-        this.numCustomers = numCustomers;
-        this.cost = cost;
+    public TabuSearchUFLP(WarehouseLocationProblem problem) {
+        this.problem = problem;
     }
 
-    // Inicializa a solução inicial aleatoriamente
     private void initializeSolution() {
-        isOpen = new boolean[numFacilities];
-        assignment = new int[numCustomers];
+        assignment = new int[problem.numCustomers];
 
         Random rand = new Random();
-
-        // Inicializar isOpen aleatoriamente
-        for (int i = 0; i < numFacilities; i++) {
-            isOpen[i] = rand.nextBoolean();
+        for (int j = 0; j < problem.numCustomers; j++) {
+            assignment[j] = rand.nextInt(problem.numWarehouses);
         }
 
-        // Inicializar assignment aleatoriamente, garantindo atribuição a instalações abertas
-        for (int j = 0; j < numCustomers; j++) {
-            int facility;
-            do {
-                facility = rand.nextInt(numFacilities);
-            } while (!isOpen[facility]);
-            assignment[j] = facility;
-        }
-
-        bestCost = calculateCost(isOpen, assignment);
+        bestCost = calculateCost(assignment);
     }
 
-    // Calcula o custo total de uma solução
-    private double calculateCost(boolean[] isOpen, int[] assignment) {
+    private double calculateCost(int[] assignment) {
         double totalCost = 0.0;
-        for (int j = 0; j < numCustomers; j++) {
-            int facility = assignment[j];
-            if (isOpen[facility]) {
-                totalCost += cost[facility][j];
-            } else {
-                // Penalidade alta se o cliente for atribuído a uma instalação fechada
-                totalCost += 1e6; // valor grande mas não extremo
+        int[] warehouseUsage = new int[problem.numWarehouses];
+
+        for (int j = 0; j < problem.numCustomers; j++) {
+            int warehouse = assignment[j];
+            warehouseUsage[warehouse] += problem.demands[j];
+            totalCost += problem.allocationCosts[warehouse][j];
+        }
+
+        for (int i = 0; i < problem.numWarehouses; i++) {
+            if (warehouseUsage[i] > 0) {
+                totalCost += problem.fixedCosts[i];
             }
         }
+
         return totalCost;
     }
 
-    // Implementação do algoritmo Tabu Search
     public void solve() {
         initializeSolution();
 
@@ -108,47 +87,39 @@ public class TabuSearchUFLP {
             Move bestMove = null;
             double bestMoveCost = Double.POSITIVE_INFINITY;
 
-            // Gerar vizinhança
-            for (int j = 0; j < numCustomers; j++) {
-                int currentFacility = assignment[j];
-                for (int i = 0; i < numFacilities; i++) {
-                    if (i != currentFacility && isOpen[i]) {
-                        Move move = new Move(j, currentFacility, i);
+            for (int j = 0; j < problem.numCustomers; j++) {
+                int currentWarehouse = assignment[j];
+                for (int i = 0; i < problem.numWarehouses; i++) {
+                    if (i != currentWarehouse) {
+                        Move move = new Move(j, currentWarehouse, i);
 
-                        // Verificar se o movimento é Tabu
                         if (!isTabu(move)) {
-                            // Fazer o movimento
-                            int oldFacility = assignment[j];
+                            int oldWarehouse = assignment[j];
                             assignment[j] = i;
-                            double currentCost = calculateCost(isOpen, assignment);
+                            double currentCost = calculateCost(assignment);
 
-                            // Aceitar o movimento se ele melhora o custo
                             if (currentCost < bestCost && currentCost < bestMoveCost) {
                                 bestMove = move;
                                 bestMoveCost = currentCost;
                                 foundBetterNeighbor = true;
                             }
 
-                            // Reverter o movimento
-                            assignment[j] = oldFacility;
+                            assignment[j] = oldWarehouse;
                         }
                     }
                 }
             }
 
-            // Aplicar o melhor movimento encontrado
             if (foundBetterNeighbor && bestMove != null) {
                 Move move = bestMove;
-                assignment[move.customer] = move.toFacility;
+                assignment[move.customer] = move.toWarehouse;
                 bestCost = bestMoveCost;
 
-                // Adicionar movimento à lista Tabu
                 tabuList.offer(move);
                 if (tabuList.size() > tenure) {
-                    tabuList.poll(); // Remove o movimento mais antigo
+                    tabuList.poll();
                 }
 
-                // Reduzir a contagem de estagnação se houve melhoria
                 if (bestCost < lastBestCost) {
                     lastBestCost = bestCost;
                     stagnationCount = 0;
@@ -156,28 +127,18 @@ public class TabuSearchUFLP {
                     stagnationCount++;
                 }
             } else {
-                // Se não houve melhoria, incrementar a contagem de estagnação
                 stagnationCount++;
             }
 
             iteration++;
         }
 
-        // Exibir resultado final do Tabu Search
-        System.out.println("Melhor custo encontrado para o Tabu Search: " + bestCost);
-        System.out.println("Instalações abertas:");
-        for (int i = 0; i < numFacilities; i++) {
-            if (isOpen[i]) {
-                System.out.println("Instalação " + i + " está aberta.");
-            }
-        }
-        System.out.println("Atribuição de clientes:");
-        for (int j = 0; j < numCustomers; j++) {
-            System.out.println("Cliente " + j + " está atribuído à instalação " + assignment[j]);
+        System.out.println("Optimal solution cost (Tabu Search): " + bestCost);
+        for (int i = 0; i < assignment.length; i++) {
+            System.out.println("Customer " + i + " assigned to warehouse " + assignment[i]);
         }
     }
 
-    // Verifica se um movimento é Tabu
     private boolean isTabu(Move move) {
         return tabuList.contains(move);
     }

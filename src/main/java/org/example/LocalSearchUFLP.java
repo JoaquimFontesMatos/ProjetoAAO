@@ -1,107 +1,72 @@
 package org.example;
 
-import java.util.*;
+import java.util.Random;
 
 public class LocalSearchUFLP {
 
-    // Variáveis do problema UFLP
-    private int numFacilities;  // número de instalações
-    private int numCustomers;   // número de clientes
-    private double[][] cost;    // matriz de custos
+    private WarehouseLocationProblem problem;
+    private int[] assignment;
+    private double bestCost;
 
-    // Solução do Local Search
-    private boolean[] isOpen;   // vetor indicando se a instalação está aberta
-    private int[] assignment;   // vetor de atribuição de clientes a instalações
-    private double bestCost;    // melhor custo encontrado
-
-    // Construtor
-    public LocalSearchUFLP(int numFacilities, int numCustomers, double[][] cost) {
-        this.numFacilities = numFacilities;
-        this.numCustomers = numCustomers;
-        this.cost = cost;
+    public LocalSearchUFLP(WarehouseLocationProblem problem) {
+        this.problem = problem;
     }
 
-    // Inicializa a solução inicial aleatoriamente
     private void initializeSolution() {
-        isOpen = new boolean[numFacilities];
-        assignment = new int[numCustomers];
+        assignment = new int[problem.numCustomers];
 
         Random rand = new Random();
-
-        // Inicializar isOpen aleatoriamente
-        for (int i = 0; i < numFacilities; i++) {
-            isOpen[i] = rand.nextBoolean();
+        for (int j = 0; j < problem.numCustomers; j++) {
+            assignment[j] = rand.nextInt(problem.numWarehouses);
         }
 
-        // Garantir que pelo menos uma instalação esteja aberta
-        boolean anyOpen = false;
-        for (boolean open : isOpen) {
-            if (open) {
-                anyOpen = true;
-                break;
-            }
-        }
-        if (!anyOpen) {
-            isOpen[rand.nextInt(numFacilities)] = true;
-        }
-
-        // Inicializar assignment aleatoriamente, garantindo atribuição a instalações abertas
-        for (int j = 0; j < numCustomers; j++) {
-            int facility;
-            do {
-                facility = rand.nextInt(numFacilities);
-            } while (!isOpen[facility]);
-            assignment[j] = facility;
-        }
-
-        bestCost = calculateCost(isOpen, assignment);
+        bestCost = calculateCost(assignment);
     }
 
-    // Calcula o custo total de uma solução
-    private double calculateCost(boolean[] isOpen, int[] assignment) {
+    private double calculateCost(int[] assignment) {
         double totalCost = 0.0;
-        for (int j = 0; j < numCustomers; j++) {
-            int facility = assignment[j];
-            if (isOpen[facility]) {
-                totalCost += cost[facility][j];
-            } else {
-                // Penalidade menor se o cliente for atribuído a uma instalação fechada
-                totalCost += 1e3; // valor menor para permitir mais flexibilidade
+        int[] warehouseUsage = new int[problem.numWarehouses];
+
+        for (int j = 0; j < problem.numCustomers; j++) {
+            int warehouse = assignment[j];
+            warehouseUsage[warehouse] += problem.demands[j];
+            totalCost += problem.allocationCosts[warehouse][j];
+        }
+
+        for (int i = 0; i < problem.numWarehouses; i++) {
+            if (warehouseUsage[i] > 0) {
+                totalCost += problem.fixedCosts[i];
             }
         }
+
         return totalCost;
     }
 
-    // Executa o Local Search para encontrar uma solução melhor
     public void solve() {
         initializeSolution();
 
-        // Parâmetros do Local Search
-        int maxIterations = 200;  // Número máximo de iterações
+        int maxIterations = 200;
         int iteration = 0;
         int stagnationCount = 0;
-        int maxStagnation = 10; // Permitir menos estagnações antes da reinicialização
-        int maxResets = 3; // Limitar o número de reinicializações permitidas
+        int maxStagnation = 10;
+        int maxResets = 3;
         int resetCount = 0;
         double lastBestCost = bestCost;
 
         while (iteration < maxIterations && resetCount < maxResets) {
             boolean improved = false;
 
-            // Exploração de vizinhança: tenta trocar a atribuição de um cliente
-            for (int j = 0; j < numCustomers; j++) {
-                int currentFacility = assignment[j];
-                for (int i = 0; i < numFacilities; i++) {
-                    if (i != currentFacility && isOpen[i]) {
-                        // Tenta atribuir o cliente j à instalação i e avalia o custo
+            for (int j = 0; j < problem.numCustomers; j++) {
+                int currentWarehouse = assignment[j];
+                for (int i = 0; i < problem.numWarehouses; i++) {
+                    if (i != currentWarehouse) {
                         assignment[j] = i;
-                        double currentCost = calculateCost(isOpen, assignment);
+                        double currentCost = calculateCost(assignment);
                         if (currentCost < bestCost) {
                             bestCost = currentCost;
                             improved = true;
                         } else {
-                            // Reverte a atribuição
-                            assignment[j] = currentFacility;
+                            assignment[j] = currentWarehouse;
                         }
                     }
                 }
@@ -113,7 +78,6 @@ public class LocalSearchUFLP {
             } else {
                 stagnationCount++;
                 if (stagnationCount >= maxStagnation) {
-                    System.out.println("Estagnação atingida. Reinicializando a solução.");
                     initializeSolution();
                     stagnationCount = 0;
                     resetCount++;
@@ -123,17 +87,9 @@ public class LocalSearchUFLP {
             iteration++;
         }
 
-        // Exibir resultado final do Local Search
-        System.out.println("Melhor custo encontrado para o LocalSearch: " + bestCost);
-        System.out.println("Instalações abertas:");
-        for (int i = 0; i < numFacilities; i++) {
-            if (isOpen[i]) {
-                System.out.println("Instalação " + i + " está aberta.");
-            }
-        }
-        System.out.println("Atribuição de clientes:");
-        for (int j = 0; j < numCustomers; j++) {
-            System.out.println("Cliente " + j + " está atribuído à instalação " + assignment[j]);
+        System.out.println("Optimal solution cost (Local Search): " + bestCost);
+        for (int i = 0; i < assignment.length; i++) {
+            System.out.println("Customer " + i + " assigned to warehouse " + assignment[i]);
         }
     }
 }
