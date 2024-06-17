@@ -33,24 +33,23 @@ public class WarehouseLocationProblem {
 
             for (int i = 0; i < numWarehouses; i++) {
                 capacities[i] = scanner.nextDouble();
-                System.out.println("capacity" + i + ": " + capacities[i]);
+                //System.out.println("capacity" + i + ": " + capacities[i]);
 
                 String input = scanner.nextLine();
                 fixedCosts[i] = Float.parseFloat(input.trim());
-                System.out.println("fixedCost" + i + ": " + fixedCosts[i]);
+                //System.out.println("fixedCost" + i + ": " + fixedCosts[i]);
             }
 
             for (int i = 0; i < numCustomers; i++) {
                 demands[i] = scanner.nextInt();
-                System.out.println("demand" + i + ": " + demands[i]);
+                //System.out.println("demand" + i + ": " + demands[i]);
 
                 for (int j = 0; j < numWarehouses; j++) {
                     String input = scanner.next();
                     allocationCosts[j][i]=Float.parseFloat(input.trim());
-                    System.out.println("cost" + j + "." + i + ": " + allocationCosts[j][i]);
+                    //System.out.println("cost" + j + "." + i + ": " + allocationCosts[j][i]);
                 }
             }
-
             scanner.close();
         } catch (FileNotFoundException e) {
             System.err.println("Erro ao carregar o arquivo de dados: " + e.getMessage());

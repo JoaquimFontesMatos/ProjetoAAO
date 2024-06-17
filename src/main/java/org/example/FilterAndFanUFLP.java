@@ -12,7 +12,7 @@ public class FilterAndFanUFLP {
 
     public int[] initialSolution() {
         // Initialize a random solution
-        Random random = new Random();
+        Random random = new Random(42); // Configura a semente para reprodutibilidade
         int[] solution = new int[problem.numCustomers];
         for (int j = 0; j < problem.numCustomers; j++) {
             solution[j] = random.nextInt(problem.numWarehouses);

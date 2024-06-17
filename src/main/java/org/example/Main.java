@@ -36,15 +36,30 @@ public class Main {
         duration = (endTime - startTime) / 1_000_000; // Convert to milliseconds
         System.out.println("Tabu Search execution time: " + duration + " ms");
 
-        // Executar o algoritmo Local Search
+        // Executar o algoritmo Local Search 5 vezes
         System.out.println("\nExecutando Local Search...");
-        startTime = System.nanoTime();
+        long totalDuration = 0;
+        double totalCost = 0;
 
-        LocalSearchUFLP localSearchAlgorithm = new LocalSearchUFLP(problem);
-        localSearchAlgorithm.solve();
+        for (int run = 0; run < 50; run++) {
+            startTime = System.nanoTime();
 
-        endTime = System.nanoTime();
-        duration = (endTime - startTime) / 1_000_000; // Convert to milliseconds
-        System.out.println("Local Search execution time: " + duration + " ms");
+            LocalSearchUFLP localSearchAlgorithm = new LocalSearchUFLP(problem);
+            localSearchAlgorithm.solve();
+
+            endTime = System.nanoTime();
+            duration = (endTime - startTime) / 1_000_000; // Convert to milliseconds
+
+            totalDuration += duration;
+            totalCost += localSearchAlgorithm.getBestCost();
+
+            //System.out.println("Local Search run " + (run + 1) + " execution time: " + duration + " ms");
+        }
+
+        double averageDuration = totalDuration / 50.0;
+        double averageCost = totalCost / 50.0;
+
+        System.out.println("Average Local Search execution time: " + averageDuration + " ms");
+        System.out.println("Average Local Search solution cost: " + averageCost);
     }
 }

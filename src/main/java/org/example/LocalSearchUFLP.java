@@ -23,6 +23,10 @@ public class LocalSearchUFLP {
         bestCost = calculateCost(assignment);
     }
 
+    public double getBestCost() {
+        return bestCost;
+    }
+
     private double calculateCost(int[] assignment) {
         double totalCost = 0.0;
         int[] warehouseUsage = new int[problem.numWarehouses];
@@ -87,7 +91,7 @@ public class LocalSearchUFLP {
             iteration++;
         }
 
-        System.out.println("Optimal solution cost (Local Search): " + bestCost);
+        //System.out.println("Optimal solution cost (Local Search): " + bestCost);
         //for (int i = 0; i < assignment.length; i++) {
             //System.out.println("Customer " + i + " assigned to warehouse " + assignment[i]);
        // }

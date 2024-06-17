@@ -47,7 +47,7 @@ public class TabuSearchUFLP {
     private void initializeSolution() {
         assignment = new int[problem.numCustomers];
 
-        Random rand = new Random();
+        Random rand = new Random(42); // Configura a semente para reprodutibilidade
         for (int j = 0; j < problem.numCustomers; j++) {
             assignment[j] = rand.nextInt(problem.numWarehouses);
         }
@@ -135,7 +135,7 @@ public class TabuSearchUFLP {
 
         System.out.println("Optimal solution cost (Tabu Search): " + bestCost);
         //for (int i = 0; i < assignment.length; i++) {
-           // System.out.println("Customer " + i + " assigned to warehouse " + assignment[i]);
+        // System.out.println("Customer " + i + " assigned to warehouse " + assignment[i]);
         //}
     }
 
