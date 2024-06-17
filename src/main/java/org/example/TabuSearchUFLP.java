@@ -134,9 +134,9 @@ public class TabuSearchUFLP {
         }
 
         System.out.println("Optimal solution cost (Tabu Search): " + bestCost);
-        for (int i = 0; i < assignment.length; i++) {
-            System.out.println("Customer " + i + " assigned to warehouse " + assignment[i]);
-        }
+        //for (int i = 0; i < assignment.length; i++) {
+           // System.out.println("Customer " + i + " assigned to warehouse " + assignment[i]);
+        //}
     }
 
     private boolean isTabu(Move move) {

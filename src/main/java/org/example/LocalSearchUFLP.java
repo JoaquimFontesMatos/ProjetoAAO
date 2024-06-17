@@ -88,8 +88,8 @@ public class LocalSearchUFLP {
         }
 
         System.out.println("Optimal solution cost (Local Search): " + bestCost);
-        for (int i = 0; i < assignment.length; i++) {
-            System.out.println("Customer " + i + " assigned to warehouse " + assignment[i]);
-        }
+        //for (int i = 0; i < assignment.length; i++) {
+            //System.out.println("Customer " + i + " assigned to warehouse " + assignment[i]);
+       // }
     }
 }
