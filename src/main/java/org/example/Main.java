@@ -6,7 +6,7 @@ import java.io.IOException;
 // click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
 public class Main {
     public static void main(String[] args) {
-        WarehouseLocationProblem problem = new WarehouseLocationProblem("src/main/java/org/example/FicheirosTeste/ORLIB/ORLIB-uncap/130/cap131.txt");
+        WarehouseLocationProblem problem = new WarehouseLocationProblem("src/main/java/org/example/FicheirosTeste/ORLIB/ORLIB-uncap/a-c/capa.txt");
 
         // Executar o algoritmo Filter and Fan
         System.out.println("Executando Filter and Fan...");
