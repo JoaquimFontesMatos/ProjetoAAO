@@ -2,6 +2,12 @@ package org.example;
 
 import java.util.Random;
 
+/**
+ * A classe LocalSearchUFLP implementa uma abordagem de pesquisa local para
+ * resolver o Problema de Localização de Armazéns Não Capacitados (UFLP). Ela
+ * utiliza uma solução inicial aleatória, avalia os custos incrementais das
+ * mudanças de atribuição de clientes e busca melhorar a solução iterativamente.
+ */
 public class LocalSearchUFLP {
 
     private WarehouseLocationProblem problem;
@@ -10,10 +16,21 @@ public class LocalSearchUFLP {
     private int[] bestAssignment;
     private int[] warehouseUsage;
 
+    /**
+     * Construtor da classe
+     * 
+     * @param problem Uma instância da classe WarehouseLocationProblem, contêm os
+     *                dados do problema, como o número de clientes, o número de
+     *                armazéns, as demandas, os custos fixos e os custos de
+     *                alocação.
+     */
     public LocalSearchUFLP(WarehouseLocationProblem problem) {
         this.problem = problem;
     }
 
+    /**
+     * Inicializa uma solução aleatória e configura as variáveis de acompanhamento.
+     */
     private void initializeSolution() {
         assignment = new int[problem.numCustomers];
         bestAssignment = new int[problem.numCustomers];
@@ -28,10 +45,22 @@ public class LocalSearchUFLP {
         System.arraycopy(assignment, 0, bestAssignment, 0, assignment.length);
     }
 
+    /**
+     * Retorna o custo da melhor solução encontrada até o momento.
+     * 
+     * @return O custo da melhor solução.
+     */
     public double getBestCost() {
         return bestCost;
     }
 
+    /**
+     * Calcula o custo total de uma determinada solução.
+     * 
+     * @param assignment Um array que representa a atribuição de clientes a
+     *                   armazéns.
+     * @return O custo total da solução.
+     */
     private double calculateCost(int[] assignment) {
         double totalCost = 0.0;
 
@@ -55,6 +84,16 @@ public class LocalSearchUFLP {
         return totalCost;
     }
 
+    /**
+     * Calcula o custo incremental ao mover um cliente de um armazém para outro.
+     * 
+     * @param customer       O índice do cliente.
+     * @param oldWarehouse   O índice do armazém atual do cliente.
+     * @param newWarehouseO  índice do novo armazém para onde o cliente será
+     *                       movido.
+     * @param warehouseUsage Um array que rastreia o uso atual dos armazéns.
+     * @return O custo incremental da mudança.
+     */
     private double calculateIncrementalCost(int customer, int oldWarehouse, int newWarehouse, int[] warehouseUsage) {
         double incrementalCost = 0.0;
         int demand = problem.demands[customer];
@@ -74,6 +113,10 @@ public class LocalSearchUFLP {
         return incrementalCost;
     }
 
+    /**
+     * Resolve o problema utilizando uma abordagem de busca local iterativa, com
+     * reinicializações para evitar estagnação.
+     */
     public void solve() {
         initializeSolution();
 
@@ -121,9 +164,5 @@ public class LocalSearchUFLP {
         }
 
         bestCost = calculateCost(bestAssignment);
-        //System.out.println("Optimal solution cost (Local Search): " + bestCost);
-        //for (int i = 0; i < bestAssignment.length; i++) {
-        //    System.out.println("Customer " + i + " assigned to warehouse " + bestAssignment[i]);
-        //}
     }
 }
