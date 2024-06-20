@@ -17,13 +17,10 @@ public class Main {
         double filterAndFanCost = filterAndFanAlgorithm.calculateCost(filterAndFanSolution);
 
         long endTime = System.nanoTime();
-        long duration = (endTime - startTime) / 1_000_000; // Convert to milliseconds
+        long durationFilterAndFan = (endTime - startTime) / 1_000_000; // Convert to milliseconds
 
         System.out.println("Optimal solution cost (Filter and Fan): " + filterAndFanCost);
-        //for (int i = 0; i < filterAndFanSolution.length; i++) {
-            //System.out.println("Customer " + i + " assigned to warehouse " + filterAndFanSolution[i]);
-        //}
-        System.out.println("Filter and Fan execution time: " + duration + " ms");
+        System.out.println("Filter and Fan execution time: " + durationFilterAndFan + " ms");
 
         // Executar o algoritmo Tabu Search
         System.out.println("\nExecutando Tabu Search...");
@@ -33,33 +30,27 @@ public class Main {
         tabuSearchAlgorithm.solve();
 
         endTime = System.nanoTime();
-        duration = (endTime - startTime) / 1_000_000; // Convert to milliseconds
-        System.out.println("Tabu Search execution time: " + duration + " ms");
+        long durationTabuSearch = (endTime - startTime) / 1_000_000; // Convert to milliseconds
 
-        // Executar o algoritmo Local Search 5 vezes
+        double tabuSearchCost = tabuSearchAlgorithm.getBestCost();
+
+        System.out.println("Optimal solution cost (Tabu Search): " + tabuSearchCost);
+        System.out.println("Tabu Search execution time: " + durationTabuSearch + " ms");
+
+        // Executar o algoritmo Local Search
         System.out.println("\nExecutando Local Search...");
-        long totalDuration = 0;
-        double totalCost = 0;
+        startTime = System.nanoTime();
 
-        for (int run = 0; run < 50; run++) {
-            startTime = System.nanoTime();
+        LocalSearchUFLP localSearchAlgorithm = new LocalSearchUFLP(problem);
+        localSearchAlgorithm.solve();
 
-            LocalSearchUFLP localSearchAlgorithm = new LocalSearchUFLP(problem);
-            localSearchAlgorithm.solve();
+        endTime = System.nanoTime();
+        long durationLocalSearch = (endTime - startTime) / 1_000_000; // Convert to milliseconds
 
-            endTime = System.nanoTime();
-            duration = (endTime - startTime) / 1_000_000; // Convert to milliseconds
+        double localSearchCost = localSearchAlgorithm.getBestCost();
 
-            totalDuration += duration;
-            totalCost += localSearchAlgorithm.getBestCost();
-
-            //System.out.println("Local Search run " + (run + 1) + " execution time: " + duration + " ms");
-        }
-
-        double averageDuration = totalDuration / 50.0;
-        double averageCost = totalCost / 50.0;
-
-        System.out.println("Average Local Search execution time: " + averageDuration + " ms");
-        System.out.println("Average Local Search solution cost: " + averageCost);
+        System.out.println("Optimal solution cost (Local Search): " + localSearchCost);
+        System.out.println("Local Search execution time: " + durationLocalSearch + " ms");
     }
+
 }

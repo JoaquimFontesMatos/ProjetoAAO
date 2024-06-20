@@ -5,7 +5,6 @@ import java.util.*;
 public class TabuSearchUFLP {
 
     private WarehouseLocationProblem problem;
-
     private int[] assignment;
     private double bestCost;
 
@@ -46,12 +45,10 @@ public class TabuSearchUFLP {
 
     private void initializeSolution() {
         assignment = new int[problem.numCustomers];
-
         Random rand = new Random(42); // Configura a semente para reprodutibilidade
         for (int j = 0; j < problem.numCustomers; j++) {
             assignment[j] = rand.nextInt(problem.numWarehouses);
         }
-
         bestCost = calculateCost(assignment);
     }
 
@@ -74,9 +71,12 @@ public class TabuSearchUFLP {
         return totalCost;
     }
 
+    public double getBestCost() {
+        return bestCost;
+    }
+
     public void solve() {
         initializeSolution();
-
         tabuList = new LinkedList<>();
         int iteration = 0;
         int stagnationCount = 0;
@@ -93,7 +93,7 @@ public class TabuSearchUFLP {
                     if (i != currentWarehouse) {
                         Move move = new Move(j, currentWarehouse, i);
 
-                        if (!isTabu(move)) {
+                        if (!isTabu(move) || satisfiesAspirationCriteria(move, bestMoveCost)) {
                             int oldWarehouse = assignment[j];
                             assignment[j] = i;
                             double currentCost = calculateCost(assignment);
@@ -111,11 +111,10 @@ public class TabuSearchUFLP {
             }
 
             if (foundBetterNeighbor && bestMove != null) {
-                Move move = bestMove;
-                assignment[move.customer] = move.toWarehouse;
+                assignment[bestMove.customer] = bestMove.toWarehouse;
                 bestCost = bestMoveCost;
 
-                tabuList.offer(move);
+                tabuList.offer(bestMove);
                 if (tabuList.size() > tenure) {
                     tabuList.poll();
                 }
@@ -133,13 +132,14 @@ public class TabuSearchUFLP {
             iteration++;
         }
 
-        System.out.println("Optimal solution cost (Tabu Search): " + bestCost);
-        //for (int i = 0; i < assignment.length; i++) {
-        // System.out.println("Customer " + i + " assigned to warehouse " + assignment[i]);
-        //}
+        //System.out.println("Optimal solution cost (Tabu Search): " + bestCost);
     }
 
     private boolean isTabu(Move move) {
         return tabuList.contains(move);
+    }
+
+    private boolean satisfiesAspirationCriteria(Move move, double moveCost) {
+        return moveCost < bestCost;
     }
 }

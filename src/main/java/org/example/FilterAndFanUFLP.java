@@ -11,8 +11,7 @@ public class FilterAndFanUFLP {
     }
 
     public int[] initialSolution() {
-        // Initialize a random solution
-        Random random = new Random(42); // Configura a semente para reprodutibilidade
+        Random random = new Random(42); // Seed for reproducibility
         int[] solution = new int[problem.numCustomers];
         for (int j = 0; j < problem.numCustomers; j++) {
             solution[j] = random.nextInt(problem.numWarehouses);
@@ -41,8 +40,10 @@ public class FilterAndFanUFLP {
 
     public int[] localSearch(int[] solution) {
         boolean improved = true;
+        int iteration = 0;
+        double currentCost = calculateCost(solution);
 
-        while (improved) {
+        while (improved && iteration < 100) { // Limit iterations to avoid infinite loops
             improved = false;
 
             for (int j = 0; j < problem.numCustomers; j++) {
@@ -51,7 +52,8 @@ public class FilterAndFanUFLP {
                     if (i != currentWarehouse) {
                         solution[j] = i;
                         double newCost = calculateCost(solution);
-                        if (newCost < calculateCost(solution)) {
+                        if (newCost < currentCost) {
+                            currentCost = newCost;
                             improved = true;
                         } else {
                             solution[j] = currentWarehouse;
@@ -59,6 +61,8 @@ public class FilterAndFanUFLP {
                     }
                 }
             }
+
+            iteration++;
         }
 
         return solution;
@@ -67,6 +71,25 @@ public class FilterAndFanUFLP {
     public int[] filterAndFan() {
         int[] solution = initialSolution();
         solution = localSearch(solution);
+
+        // Apply fan steps
+        for (int step = 0; step < 3; step++) {
+            solution = perturbSolution(solution);
+            solution = localSearch(solution);
+        }
+
+        return solution;
+    }
+
+    private int[] perturbSolution(int[] solution) {
+        Random random = new Random(42);
+
+        for (int j = 0; j < problem.numCustomers; j++) {
+            if (random.nextDouble() < 0.1) { // Probability of perturbation (adjust as needed)
+                solution[j] = random.nextInt(problem.numWarehouses);
+            }
+        }
+
         return solution;
     }
 }
